@@ -4,12 +4,7 @@ export default (phase, { defaultConfig }) => {
    * @type {import("next").NextConfig}
    */
   if (env === "production") {
-    return {
-      output: "export",
-      assetPrefix: "/",
-      basePath: "/",
-      distDir: "../",
-    };
+    return {};
   } else {
     return {
       async rewrites() {
