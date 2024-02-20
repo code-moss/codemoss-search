@@ -38,8 +38,8 @@ export const Result: FC<{ query: string; rid: string }> = ({ query, rid }) => {
           <div className="p-4 bg-white shadow-2xl rounded text-blue-500 font-medium flex gap-4">
             <Annoyed></Annoyed>
             {error === 429
-              ? "Sorry, you have made too many requests recently, try again later."
-              : "Sorry, we might be overloaded, try again later."}
+              ? "很抱歉，您最近提出的请求太多，请稍后再试。"
+              : "抱歉，遇到未知问题（可以检查一下自己的key是否设置正确）"}
           </div>
         </div>
       )}
