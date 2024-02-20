@@ -4,7 +4,7 @@ import { Search } from "@/app/components/search";
 import { Title } from "@/app/components/title";
 import { useSearchParams } from "next/navigation";
 export default function SearchPage() {
-  const searchParams = useSearchParams();
+  const searchParams: any = useSearchParams();
   const query = decodeURIComponent(searchParams.get("q") || "");
   const rid = decodeURIComponent(searchParams.get("rid") || "");
   return (

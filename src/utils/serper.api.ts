@@ -1,6 +1,6 @@
 import axios from "axios";
 
-async function SerperApi(query) {
+async function SerperApi(query: any) {
   if (!query) return "";
   let data = JSON.stringify({
     q: query,

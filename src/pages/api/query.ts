@@ -1,14 +1,18 @@
+import type { NextApiRequest, NextApiResponse } from "next";
 import { Readable } from "stream";
-import SerperApi from "../utils/serper.api";
+import SerperApi from "../../utils/serper.api";
 import OpenAI from "openai";
 
-function transformString(str) {
+function transformString(str: any) {
   let lines = str.split("\n");
-  let result = lines.map((line) => ({ question: line }));
+  let result = lines.map((line: any) => ({ question: line }));
   return result;
 }
 
-export default async function handler(req, res) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
   // 第一步：将用户问题请求网络API拿到网络数据
   const { query, rid } = req.body;
   const serperData = await SerperApi(query);
@@ -30,7 +34,7 @@ export default async function handler(req, res) {
   });
 
   const stream = await openai.chat.completions.create({
-    model: process.env.CHAT_MODEL,
+    model: process.env.CHAT_MODEL || "gpt-3.5-turbo",
     messages: [
       {
         role: "system",
@@ -42,7 +46,7 @@ Please cite the contexts with the reference numbers, in the format [citation:x].
 
 Here are the set of contexts:
 
-${serperData.map((c) => c.snippet).join("\n\n")}
+${serperData.map((c: any) => c.snippet).join("\n\n")}
 
 Remember, don't blindly repeat the contexts verbatim. And here is the user question: \n\n`,
       },
@@ -58,7 +62,7 @@ Remember, don't blindly repeat the contexts verbatim. And here is the user quest
 
   //   第三步：猜你想问
   const chatCompletion = await openai.chat.completions.create({
-    model: process.env.CHAT_MODEL,
+    model: process.env.CHAT_MODEL || "gpt-3.5-turbo",
     messages: [
       {
         role: "system",
@@ -66,7 +70,7 @@ Remember, don't blindly repeat the contexts verbatim. And here is the user quest
         
         Here are the contexts of the question:
         
-        ${serperData.map((c) => c.snippet).join("\n\n")}
+        ${serperData.map((c: any) => c.snippet).join("\n\n")}
         
         Remember, based on the original question and related contexts, suggest three such further questions. Do NOT repeat the original question. Each related question should be no longer than 20 words. Here is the original question:
         `,
