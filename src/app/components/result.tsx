@@ -39,7 +39,7 @@ export const Result: FC<{ query: string; rid: string }> = ({ query, rid }) => {
             <Annoyed></Annoyed>
             {error === 429
               ? "很抱歉，您最近提出的请求太多，请稍后再试。"
-              : "抱歉，遇到未知问题（可以检查一下自己的key是否设置正确）"}
+              : "抱歉，遇到未知问题，您可以重新尝试"}
           </div>
         </div>
       )}
