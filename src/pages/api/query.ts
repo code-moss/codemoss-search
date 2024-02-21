@@ -11,7 +11,7 @@ import OpenAI from "openai";
  */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   const { query, rid } = req.body;
 
@@ -44,7 +44,7 @@ export default async function handler(
   const relatedQuestions = await generateRelatedQuestions(
     openai,
     query,
-    serperData
+    serperData,
   );
   readable.push("\n\n__RELATED_QUESTIONS__\n\n");
   readable.push(JSON.stringify(relatedQuestions));
@@ -84,11 +84,11 @@ function createInitialPayload(query: string, rid: string, serperData: any) {
 async function requestOpenAICompletion(
   openai: OpenAI,
   query: string,
-  serperData: any
+  serperData: any,
 ) {
   return openai.chat.completions.create({
     model: process.env.CHAT_MODEL || "gpt-3.5-turbo",
-    messages: createOpenAIMessages(query, serperData),
+    messages: createOpenAIMessages(query, serperData, "answer"),
     stream: true,
   });
 }
@@ -99,8 +99,11 @@ async function requestOpenAICompletion(
  * @param {Object[]} serperData 相关上下文数据。
  * @returns {Object[]} OpenAI请求的消息体。
  */
-function createOpenAIMessages(query: string, serperData: any): any {
-  const systemMessageContent = generateSystemMessageContent(serperData);
+function createOpenAIMessages(query: string, serperData: any, type: any): any {
+  const systemMessageContent =
+    type === "answer"
+      ? generateSystemMessageContent(serperData)
+      : generateRelatedMessageContent(serperData);
   return [
     { role: "system", content: systemMessageContent },
     { role: "user", content: query },
@@ -108,12 +111,40 @@ function createOpenAIMessages(query: string, serperData: any): any {
 }
 
 /**
- * 生成系统消息内容。
+ * 回答部分Prompt
  * @param {Object[]} serperData 相关上下文数据。
  * @returns {string} 系统消息内容。
  */
 function generateSystemMessageContent(serperData: any) {
-  return `You are a large language AI assistant built by CodeMoss AI. ... Here are the set of contexts:\n\n${serperData.map((c: any) => c.snippet).join("\n\n")}\n\nRemember, don't blindly repeat the contexts verbatim. And here is the user question: \n\n`;
+  return `
+  You are a large language AI assistant built by CodeMoss AI. You are given a user question, and please write clean, concise and accurate answer to the question. You will be given a set of related contexts to the question, each starting with a reference number like [[citation:x]], where x is a number. Please use the context and cite the context at the end of each sentence if applicable.
+
+  Your answer must be correct, accurate and written by an expert using an unbiased and professional tone. Please limit to 1024 tokens. Do not give any information that is not related to the question, and do not repeat. Say "information is missing on" followed by the related topic, if the given context do not provide sufficient information.  
+
+  Please cite the contexts with the reference numbers, in the format [citation:x]. If a sentence comes from multiple contexts, please list all applicable citations, like [citation:3][citation:5]. Other than code and specific names and citations, your answer must be written in the same language as the question.  
+  
+  Here are the set of contexts:
+
+  ${serperData.map((c: any) => c.snippet).join("\n\n")}
+
+  Remember, don't blindly repeat the contexts verbatim. And here is the user question: \n\n`;
+}
+
+/**
+ * 相关问题的Prompt
+ * @param {Object[]} serperData 相关上下文数据。
+ * @returns {string} 系统消息内容。
+ */
+function generateRelatedMessageContent(serperData: any) {
+  return `
+  You are a helpful assistant that helps the user to ask related questions, based on user's original question and the related contexts. Please identify worthwhile topics that can be follow-ups, and write questions no longer than 20 words each. Please make sure that specifics, like events, names, locations, are included in follow up questions so they can be asked standalone. For example, if the original question asks about "the Manhattan project", in the follow up question, do not just say "the project", but use the full name "the Manhattan project". Your related questions must be in the same language as the original question.
+  
+  Here are the contexts of the question:
+
+  ${serperData.map((c: any) => c.snippet).join("\n\n")}
+
+  Remember, based on the original question and related contexts, suggest three such further questions. Do NOT repeat the original question. Each related question should be no longer than 20 words. Here is the original question:
+  `;
 }
 
 /**
@@ -126,11 +157,11 @@ function generateSystemMessageContent(serperData: any) {
 async function generateRelatedQuestions(
   openai: OpenAI,
   query: string,
-  serperData: any
+  serperData: any,
 ) {
   const chatCompletion = await openai.chat.completions.create({
     model: process.env.CHAT_MODEL || "gpt-3.5-turbo",
-    messages: createOpenAIMessages(query, serperData),
+    messages: createOpenAIMessages(query, serperData, "related"),
   });
   return transformString(chatCompletion.choices[0].message.content);
 }
