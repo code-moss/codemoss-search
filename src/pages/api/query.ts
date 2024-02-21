@@ -11,15 +11,23 @@ import OpenAI from "openai";
  */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   const { query, rid } = req.body;
+
+  // 设置响应头并将流内容发送给客户端
+  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+  res.setHeader("Transfer-Encoding", "chunked");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("X-Accel-Buffering", "no");
+  // 创建一个Readable流用于响应
+  const readable = new Readable({ read() {} });
+  readable.pipe(res);
 
   // 第一步：获取与用户问题相关的数据
   const serperData = await SerperApi(query);
 
-  // 创建一个Readable流用于响应
-  const readable = new Readable({ read() {} });
   const initialPayload = createInitialPayload(query, rid, serperData);
   readable.push(initialPayload);
 
@@ -36,17 +44,12 @@ export default async function handler(
   const relatedQuestions = await generateRelatedQuestions(
     openai,
     query,
-    serperData,
+    serperData
   );
   readable.push("\n\n__RELATED_QUESTIONS__\n\n");
   readable.push(JSON.stringify(relatedQuestions));
 
   readable.push(null); // 结束流
-
-  // 设置响应头并将流内容发送给客户端
-  res.setHeader("Content-Type", "text/plain; charset=utf-8");
-  res.setHeader("Transfer-Encoding", "chunked");
-  readable.pipe(res);
 }
 
 /**
@@ -81,7 +84,7 @@ function createInitialPayload(query: string, rid: string, serperData: any) {
 async function requestOpenAICompletion(
   openai: OpenAI,
   query: string,
-  serperData: any,
+  serperData: any
 ) {
   return openai.chat.completions.create({
     model: process.env.CHAT_MODEL || "gpt-3.5-turbo",
@@ -123,7 +126,7 @@ function generateSystemMessageContent(serperData: any) {
 async function generateRelatedQuestions(
   openai: OpenAI,
   query: string,
-  serperData: any,
+  serperData: any
 ) {
   const chatCompletion = await openai.chat.completions.create({
     model: process.env.CHAT_MODEL || "gpt-3.5-turbo",
