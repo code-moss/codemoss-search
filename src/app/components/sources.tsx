@@ -8,7 +8,6 @@ const SourceItem: FC<{ source: Source; index: number }> = ({
   source,
   index,
 }) => {
-  console.log("source", source);
   const { position, title, link } = source;
   const domain = new URL(link).hostname;
   return (

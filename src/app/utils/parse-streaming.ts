@@ -48,10 +48,8 @@ export const parseStreaming = async (
     (chunk) => {
       uint8Array = new Uint8Array([...uint8Array, ...chunk]);
       chunks = decoder.decode(uint8Array, { stream: true });
-      console.log("触发了", chunks);
       if (chunks.includes(LLM_SPLIT)) {
         const [sources, rest] = chunks.split(LLM_SPLIT);
-        console.log("触发了2", JSON.parse(sources));
         if (!sourcesEmitted) {
           try {
             onSources(JSON.parse(sources).contexts);

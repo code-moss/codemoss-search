@@ -5,7 +5,6 @@ async function pump(
   onDone?: () => void,
 ): Promise<ReadableStreamReadResult<Uint8Array> | undefined> {
   const { done, value } = await reader.read();
-  console.log("reader", reader, done, value);
   if (done) {
     onDone && onDone();
     controller.close();
