@@ -71,7 +71,7 @@ function initializeOpenAI() {
  * @returns {string} 初始请求负载。
  */
 function createInitialPayload(query: string, rid: string, serperData: any) {
-  return `{"query": "${query}", "rid": "${rid}", "contexts": ${JSON.stringify(serperData)}}\n\n__LLM_RESPONSE__\n\n`;
+  return `{"query": "${query.trim()}", "rid": "${rid}", "contexts": ${JSON.stringify(serperData)}}\n\n__LLM_RESPONSE__\n\n`;
 }
 
 /**
