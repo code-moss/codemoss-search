@@ -4,6 +4,8 @@ import { Readable } from "stream";
 import SerperApi from "../../utils/serper.api";
 import OpenAI from "openai";
 
+let MODEL = "gpt-3.5-turbo";
+
 /**
  * 入口：处理API请求，根据用户问题获取相关上下文并调用OpenAI生成回答和相关问题。
  * @param {NextApiRequest} req 请求对象。
@@ -13,7 +15,11 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  const { query, rid } = req.body;
+  const { query, rid, model } = req.body;
+
+  console.log("model", model);
+
+  MODEL = model ? model : process.env.CHAT_MODEL;
 
   // 设置响应头并将流内容发送给客户端
   res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
@@ -87,7 +93,7 @@ async function requestOpenAICompletion(
   serperData: any,
 ) {
   return openai.chat.completions.create({
-    model: process.env.CHAT_MODEL || "gpt-3.5-turbo",
+    model: MODEL || "gpt-3.5-turbo",
     messages: createOpenAIMessages(query, serperData, "answer"),
     stream: true,
   });
@@ -160,7 +166,7 @@ async function generateRelatedQuestions(
   serperData: any,
 ) {
   const chatCompletion = await openai.chat.completions.create({
-    model: process.env.CHAT_MODEL || "gpt-3.5-turbo",
+    model: MODEL,
     messages: createOpenAIMessages(query, serperData, "related"),
   });
   return transformString(chatCompletion.choices[0].message.content);

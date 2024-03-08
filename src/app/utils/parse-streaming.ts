@@ -8,6 +8,7 @@ const RELATED_SPLIT = "__RELATED_QUESTIONS__";
 export const parseStreaming = async (
   controller: AbortController,
   query: string,
+  model: string,
   search_uuid: string,
   onSources: (value: Source[]) => void,
   onMarkdown: (value: string) => void,
@@ -27,6 +28,7 @@ export const parseStreaming = async (
     signal: controller.signal,
     body: JSON.stringify({
       query,
+      model,
       search_uuid,
     }),
   });
