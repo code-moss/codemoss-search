@@ -17,8 +17,6 @@ export default async function handler(
 ) {
   const { query, rid, model } = req.body;
 
-  console.log("model", model);
-
   MODEL = model ? model : process.env.CHAT_MODEL;
 
   // 设置响应头并将流内容发送给客户端
